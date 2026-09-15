@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>68.0</apiVersion>
+    <description>Manages case escalation logic for High and Critical priority cases. Creates follow-up tasks, sends email alerts, updates escalation flags, and handles scheduled 24-hour re-checks.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>Formula_TomorrowDate</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() + 1</expression>
+    </formulas>
+    <interviewLabel>Case Escalation Management {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Case Escalation Management</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <runInMode>SystemModeWithoutSharing</runInMode>
+    <start>
+        <locationX>176</locationX>
+        <locationY>50</locationY>
+        <connector>
+            <targetReference>Check_Priority</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Status</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Open</stringValue>
+            </value>
+        </filters>
+        <object>Case</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <scheduledPaths>
+            <name>Escalation_24hr_Check</name>
+            <connector>
+                <targetReference>Check_Still_Open</targetReference>
+            </connector>
+            <label>Escalation 24hr Check</label>
+            <offsetNumber>24</offsetNumber>
+            <offsetUnit>Hours</offsetUnit>
+            <timeSource>RecordCreatedDate</timeSource>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Draft</status>
+
+    <!-- MAIN IMMEDIATE PATH — Check_Priority Decision -->
+    <decisions>
+        <name>Check_Priority</name>
+        <label>Check Priority</label>
+        <locationX>176</locationX>
+        <locationY>200</locationY>
+        <defaultConnectorLabel>Default (Neither High nor Critical)</defaultConnectorLabel>
+        <rules>
+            <name>High_Priority_Rule</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Priority</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>High</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Related_Contact</targetReference>
+            </connector>
+            <label>High Priority</label>
+        </rules>
+        <rules>
+            <name>Critical_Priority_Rule</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Priority</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Critical</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_Critical_Task</targetReference>
+            </connector>
+            <label>Critical Priority</label>
+        </rules>
+    </decisions>
+
+    <!-- BRANCH 1 — HIGH PRIORITY -->
+    <recordLookups>
+        <name>Get_Related_Contact</name>
+        <label>Get Related Contact</label>
+        <locationX>0</locationX>
+        <locationY>380</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Create_High_Priority_Task</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.ContactId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Contact</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <recordCreates>
+        <name>Create_High_Priority_Task</name>
+        <label>Create High Priority Task</label>
+        <locationX>0</locationX>
+        <locationY>560</locationY>
+        <connector>
+            <targetReference>Send_High_Priority_Email_Alert</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Fault_High_Priority_Task</targetReference>
+        </faultConnector>
+        <inputAssignments>
+            <field>ActivityDate</field>
+            <value>
+                <elementReference>Formula_TomorrowDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <stringValue>High priority case requires immediate attention.</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>$Record.OwnerId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value>
+                <stringValue>High</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Not Started</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <stringValue>High Priority Case Follow Up</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhoId</field>
+            <value>
+                <elementReference>Get_Related_Contact.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+    </recordCreates>
+
+    <actionCalls>
+        <name>Send_High_Priority_Email_Alert</name>
+        <label>Send High Priority Email Alert</label>
+        <locationX>0</locationX>
+        <locationY>740</locationY>
+        <actionName>Case.High_Priority_Case_Email_Alert</actionName>
+        <actionType>emailAlert</actionType>
+        <faultConnector>
+            <targetReference>Fault_High_Priority_Email</targetReference>
+        </faultConnector>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+    </actionCalls>
+
+    <!-- BRANCH 2 — CRITICAL PRIORITY -->
+    <recordCreates>
+        <name>Create_Critical_Task</name>
+        <label>Create Critical Task</label>
+        <locationX>352</locationX>
+        <locationY>380</locationY>
+        <connector>
+            <targetReference>Update_Case_Escalated</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Fault_Critical_Task</targetReference>
+        </faultConnector>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <stringValue>Critical priority case — escalate immediately.</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>$Record.OwnerId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value>
+                <stringValue>High</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Not Started</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <stringValue>CRITICAL: Immediate Escalation Required</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+    </recordCreates>
+
+    <recordUpdates>
+        <name>Update_Case_Escalated</name>
+        <label>Update Case Escalated Flag</label>
+        <locationX>352</locationX>
+        <locationY>560</locationY>
+        <faultConnector>
+            <targetReference>Fault_Update_Escalated</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Escalated__c</field>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </inputAssignments>
+        <object>Case</object>
+    </recordUpdates>
+
+    <!-- SCHEDULED PATH — 24hr Escalation Check -->
+    <decisions>
+        <name>Check_Still_Open</name>
+        <label>Check Case Still Open</label>
+        <locationX>528</locationX>
+        <locationY>200</locationY>
+        <defaultConnectorLabel>Case No Longer Open</defaultConnectorLabel>
+        <rules>
+            <name>Case_Still_Open_Rule</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Status</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Open</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_Escalation_Task</targetReference>
+            </connector>
+            <label>Case Still Open</label>
+        </rules>
+    </decisions>
+
+    <recordCreates>
+        <name>Create_Escalation_Task</name>
+        <label>Create Escalation Task (24hr)</label>
+        <locationX>528</locationX>
+        <locationY>380</locationY>
+        <connector>
+            <targetReference>Send_Manager_Email_Alert</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Fault_Escalation_Task</targetReference>
+        </faultConnector>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <stringValue>Case was not resolved within 24 hours. Escalate to support manager.</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>OwnerId</field>
+            <value>
+                <elementReference>$Record.OwnerId</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Priority</field>
+            <value>
+                <stringValue>High</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Not Started</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Subject</field>
+            <value>
+                <stringValue>Escalation Follow Up — Case Still Open After 24 Hours</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>WhatId</field>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Task</object>
+    </recordCreates>
+
+    <actionCalls>
+        <name>Send_Manager_Email_Alert</name>
+        <label>Send Manager Email Alert</label>
+        <locationX>528</locationX>
+        <locationY>560</locationY>
+        <actionName>Case.Escalation_Manager_Email_Alert</actionName>
+        <actionType>emailAlert</actionType>
+        <faultConnector>
+            <targetReference>Fault_Manager_Email</targetReference>
+        </faultConnector>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+    </actionCalls>
+
+    <!-- FAULT PATH VARIABLE -->
+    <variables>
+        <name>var_FaultMessage</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <!-- FAULT ASSIGNMENTS -->
+    <assignments>
+        <name>Fault_High_Priority_Task</name>
+        <label>Fault: High Priority Task</label>
+        <locationX>0</locationX>
+        <locationY>920</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <assignments>
+        <name>Fault_High_Priority_Email</name>
+        <label>Fault: High Priority Email Alert</label>
+        <locationX>176</locationX>
+        <locationY>920</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <assignments>
+        <name>Fault_Critical_Task</name>
+        <label>Fault: Critical Task</label>
+        <locationX>352</locationX>
+        <locationY>740</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <assignments>
+        <name>Fault_Update_Escalated</name>
+        <label>Fault: Update Case Escalated Flag</label>
+        <locationX>528</locationX>
+        <locationY>740</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <assignments>
+        <name>Fault_Escalation_Task</name>
+        <label>Fault: Escalation Task (24hr)</label>
+        <locationX>704</locationX>
+        <locationY>740</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <assignments>
+        <name>Fault_Manager_Email</name>
+        <label>Fault: Manager Email Alert</label>
+        <locationX>880</locationX>
+        <locationY>740</locationY>
+        <assignmentItems>
+            <assignToReference>var_FaultMessage</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+</Flow>
