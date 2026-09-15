@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtlClntAppOauthSettings xmlns="http://soap.sforce.com/2006/04/metadata">
+    <commaSeparatedOauthScopes>Api, RefreshToken, SFApiPlatform, EinsteinGPT</commaSeparatedOauthScopes>
+    <externalClientApplication>Cursor</externalClientApplication>
+    <isFirstPartyAppEnabled>false</isFirstPartyAppEnabled>
+    <label>Cursor_oauth</label>
+    <oauthLink>00D3I0000008nR1:888Ek000000cy3B</oauthLink>
+</ExtlClntAppOauthSettings>
