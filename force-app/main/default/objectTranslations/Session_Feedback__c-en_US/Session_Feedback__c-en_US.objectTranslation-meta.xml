@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Session Feedback</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Session Feedbacks</value>
+    </caseValues>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- Rating must be between 1 and 5. --></errorMessage>
+        <name>Rating_Between_1_And_5</name>
+    </validationRules>
+</CustomObjectTranslation>

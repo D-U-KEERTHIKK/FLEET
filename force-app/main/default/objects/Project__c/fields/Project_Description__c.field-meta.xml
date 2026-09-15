@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Project_Description__c</fullName>
+    <description>Detailed description of the project scope and objectives.</description>
+    <inlineHelpText>Enter a comprehensive description of the project including goals, scope, and key deliverables.</inlineHelpText>
+    <label>Project Description</label>
+    <length>32768</length>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>3</visibleLines>
+</CustomField>

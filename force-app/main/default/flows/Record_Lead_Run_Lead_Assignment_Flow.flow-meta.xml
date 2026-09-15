@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <decisions>
+        <name>Ready_for_Assignment_Decision</name>
+        <label>Ready for Assignment Decision</label>
+        <locationX>519</locationX>
+        <locationY>353</locationY>
+        <defaultConnectorLabel>Not Ready</defaultConnectorLabel>
+        <rules>
+            <name>Run_Lead_Assignment_is_marked</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Run_Lead_Assignment__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Run_Lead_Assignment_Flow</targetReference>
+            </connector>
+            <label>Run Lead Assignment is marked</label>
+        </rules>
+    </decisions>
+    <description>When Leads are updated to have an MQL Date filled in, run the Auto: Lead Assignment Flow
+v2 12.01.2022 - Updated triggering rule to be when Run Lead Assignment checkbox is marked</description>
+    <environments>Default</environments>
+    <interviewLabel>Record: Lead: Run Lead Assignment Flow {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Record: Lead: Run Lead Assignment Flow</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>FREE_FORM_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>401</locationX>
+        <locationY>48</locationY>
+        <connector>
+            <targetReference>Ready_for_Assignment_Decision</targetReference>
+        </connector>
+        <object>Lead</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Obsolete</status>
+    <subflows>
+        <name>Run_Lead_Assignment_Flow</name>
+        <label>Run Lead Assignment Flow</label>
+        <locationX>780</locationX>
+        <locationY>363</locationY>
+        <flowName>Auto_Lead_Assignment_Flow</flowName>
+        <inputAssignments>
+            <name>recordId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+    </subflows>
+</Flow>

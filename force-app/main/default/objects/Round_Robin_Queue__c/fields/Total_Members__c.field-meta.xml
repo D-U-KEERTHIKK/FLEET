@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Total_Members__c</fullName>
+    <description>Counts all the round robin queue members associated on this queue</description>
+    <label>Total Members</label>
+    <summaryForeignKey>Round_Robin_Queue_Member__c.Round_Robin_Queue__c</summaryForeignKey>
+    <summaryOperation>count</summaryOperation>
+    <trackTrending>false</trackTrending>
+    <type>Summary</type>
+</CustomField>

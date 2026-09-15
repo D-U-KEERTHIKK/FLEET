@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AIApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>Opportunity_Win_Loss_Predictions</developerName>
+    <masterLabel>Opportunity Win Predictions</masterLabel>
+    <status>Draft</status>
+    <type>PredictionBuilder</type>
+</AIApplication>
