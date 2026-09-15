@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Sponsorer --></label>
+    <name>Sponsorer__c</name>
+    <picklistValues>
+        <masterLabel>Code Glide</masterLabel>
+        <translation><!-- Code Glide --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Opsera</masterLabel>
+        <translation><!-- Opsera --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Opsera Insights</masterLabel>
+        <translation><!-- Opsera Insights --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Opsera for Salesforce</masterLabel>
+        <translation><!-- Opsera for Salesforce --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Salesforce Agentforce</masterLabel>
+        <translation><!-- Salesforce Agentforce --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

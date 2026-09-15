@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingCriteriaRules>
+        <fullName>Share_Amount_GT_10000_SDR</fullName>
+        <accessLevel>Read</accessLevel>
+        <description>Shares records with Sharing_Amount__c &gt; 10000 to SDR role.</description>
+        <label>Share records with large amount to SDR</label>
+        <sharedTo>
+            <role>SDR</role>
+        </sharedTo>
+        <criteriaItems>
+            <field>Sharing_Amount__c</field>
+            <operation>greaterThan</operation>
+            <value>10000</value>
+        </criteriaItems>
+        <includeRecordsOwnedByAll>false</includeRecordsOwnedByAll>
+    </sharingCriteriaRules>
+    <sharingOwnerRules>
+        <fullName>OwnedBy_Sales_SharedTo_SDR</fullName>
+        <accessLevel>Edit</accessLevel>
+        <description>Shares records owned by Sales role with SDR role.</description>
+        <label>Sales owned shared to SDR</label>
+        <sharedTo>
+            <role>SDR</role>
+        </sharedTo>
+        <sharedFrom>
+            <role>Sales</role>
+        </sharedFrom>
+    </sharingOwnerRules>
+</SharingRules>
