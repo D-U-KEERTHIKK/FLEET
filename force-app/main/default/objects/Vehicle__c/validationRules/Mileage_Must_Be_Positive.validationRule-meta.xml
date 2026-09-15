@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <description>Validation rule that throws an error if Mileage__c is less than 0.</description>
+    <errorConditionFormula>Mileage__c &lt; 0</errorConditionFormula>
+    <errorDisplayField>Mileage__c</errorDisplayField>
+    <errorMessage>Mileage must be a positive value.</errorMessage>
+    <language>en_US</language>
+</ValidationRule>
